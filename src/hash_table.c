@@ -4,7 +4,35 @@
  * Prototypes
  */
 
-void free_redirect(struct hash_table * table);
+/*
+ * Frees the redirect list and its pointers to other memory locations.
+ *
+ * Parameters:
+ * 		struct hash_table  table: parent of the redirect list.
+ * Return:
+ * 		void
+ */
+
+void free_redirect(struct hash_table  table);
+
+/*
+ * Creates the file system for the program. The main table to which all the hash tables are linked.
+ *
+ * Parameters:
+ * 		int * iface: Pointer to the location in memory where the interface information about this FIB
+ * 				is stored
+ * 		uint32_t *prefix: Pointer to the location in memory where the IP address information about this
+ * 				FIB	is stored
+ * 		int prefixLength: Length of the netmask. used to find the position in the main table
+ * 		int hash: Indes of the data given inside the hash table.
+ * 		struct hash_table ** table: Pointer to the location in memory where the file system was built
+ * Return:
+ * 		int: error or succed code.
+ * 			-3007 MEMORY_ALLOCATED_ERROR
+ * 			0 OK
+ */
+
+int put(int * iface, uint32_t *prefix, int prefixLength, int hash, struct hash_table ** table);
 
 /*
  * Function definition
@@ -41,7 +69,7 @@ void free_table(struct hash_table ** table){
 	free(table);
 }
 
-void free_redirect(struct hash_table * table){
+void free_redirect(struct hash_table table){
 	struct redirect * aux, * aux2;
 	if((aux=table.first) == NULL)
 		return;
@@ -54,7 +82,7 @@ void free_redirect(struct hash_table * table){
 	free(aux);
 }
 
-int put( struct hash_table ** table){
+int put( struct hash_table ** table ){
 	int *iface, ret = OK;
 	uint32_t *prefix;
 	int *prefixLength;
@@ -67,7 +95,7 @@ int put( struct hash_table ** table){
 		ret = put(iface, prefix, *prefixLength, hash(*prefix, sizeHashTable), table);
 	}
 	free(prefixLength);
-	return ret;
+	return OK;
 }
 
 int put(int * iface, uint32_t *prefix, int prefixLength, int hash, struct hash_table ** table){
