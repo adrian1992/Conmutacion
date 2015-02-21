@@ -20,6 +20,7 @@
 #define BAD_INPUT_FILE -3004
 #define PARSE_ERROR -3005
 #define CANNOT_CREATE_OUTPUT -3006
+#define MEMORY_ALLOCATED_ERROR -3007
 
 
 /********************************************************************

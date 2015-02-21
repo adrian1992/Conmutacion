@@ -1,8 +1,9 @@
 #include <stdio.h>
+#include "io.h"
 
 typedef struct redirect{
-	uint32_t IPAddress;
-	int iface
+	uint32_t *IPAddress;
+	int *iface;
 	struct redirect *next;
 };
 
