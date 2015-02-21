@@ -1,6 +1,12 @@
 #include <stdio.h>
 #include "io.h"
 
+#ifndef _HASH_TABLE
+#define _HASH_TABLE
+
+#define HASH_LENGTH 32
+
+
 typedef struct redirect{
 	uint32_t *IPAddress;
 	int *iface;
@@ -49,3 +55,5 @@ void free_table(struct hash_table ** table);
  */
 
 int put( struct hash_table ** table );
+
+#endif //_HASH_TABLE
