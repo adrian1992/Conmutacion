@@ -74,4 +74,18 @@ void free_table(struct hash_table ** table);
 
 int put( struct hash_table ** table );
 
+/*
+ * Searches the output interface for an IP address.
+ *
+ * Parameters:
+ * 		uint32_t IPaddress: Ip address to search in the tables.
+ * 		struct hash_table ** table: Pointer to the location in memory where the file system was built
+ * Return:
+ * 		int *: error or interface number.
+ * 			-3008 ADDRESS_COULDNT_RESOLVE
+ * 			iface
+ */
+
+int *search(uint32_t IPaddress, struct hash_table ** table);
+
 #endif //_HASH_TABLE

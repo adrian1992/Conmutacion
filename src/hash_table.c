@@ -53,6 +53,26 @@ void free_redirect(struct hash_table  table);
 int put(int * iface, uint32_t *prefix, int prefixLength, int hash, struct hash_table ** table);
 
 /*
+ * Searches the output interface for an IP address. between the possible collisions.
+ *
+ * Parameters:
+ * 		uint32_t IPaddress: Ip address to search in the tables.
+ * 		struct redirect *first: first element of the list containing all the FIB collisions for a hash
+ * Return:
+ * 		int *: error or interface number.
+ * 			-3008 ADDRESS_COULDNT_RESOLVE
+ * 			iface
+ */
+
+int *search(uint32_t IPaddress, struct redirect *first){
+	while( *(first->IPAddress) != IPaddress && (first->next) != NULL )
+		first = first->next;
+	if( *(first->IPAddress) == IPaddress )
+		return first->iface;
+	return -1;
+}
+
+/*
  * Function definition
  */
 
@@ -110,7 +130,7 @@ int put( struct hash_table ** table ){
 			sizeHashTable=16;
 		else
 			sizeHashTable=*prefixLength;
-		ret = put(iface, prefix, *prefixLength, hash(*prefix, sizeHashTable), table);
+		ret = put(iface, prefix, *prefixLength, hash(*prefix & getNetmask(prefixLength), sizeHashTable), table);
 	}
 	free(prefixLength);
 	return OK;
@@ -138,7 +158,27 @@ int put(int * iface, uint32_t *prefix, int prefixLength, int hash, struct hash_t
 	return OK;
 }
 
+int *search(uint32_t IPaddress, struct hash_table ** table){
+	int i, IPprefix, hash, ret;
+	for (i=32;i>=0;i--){
+		IPprefix = &IPaddress & getNetmask(i);
+		if(i>15)
+			hash=hash(&IPprefix, 16);
+		else
+			hash=hash(&IPprefix, i);
+		if( ( ret=search(IPaddress, table[i][hash].first) ) != -1 ){
+			return ret;
+		}
+	}
+	return ADDRESS_COULDNT_RESOLVE;
+}
 
-
+int *search(uint32_t IPaddress, struct redirect *first){
+	while( *(first->IPAddress) != IPaddress && (first->next) != NULL )
+		first = first->next;
+	if( *(first->IPAddress) == IPaddress )
+		return first->iface;
+	return -1;
+}
 
 
