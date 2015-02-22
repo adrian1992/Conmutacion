@@ -32,7 +32,7 @@
 /********************************************************************
  * Generate a netmask of length prefixLength
  ********************************************************************/
-void getNetmask (int prefixLength, int *netmask);
+int getNetmask (int prefixLength);
 
 /********************************************************************
  * Example of a very simple hash function using the modulus operator
