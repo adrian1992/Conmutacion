@@ -21,6 +21,7 @@
 #define PARSE_ERROR -3005
 #define CANNOT_CREATE_OUTPUT -3006
 #define MEMORY_ALLOCATED_ERROR -3007
+#define ADDRESS_COULDNT_RESOLVE -3008
 
 
 /********************************************************************
