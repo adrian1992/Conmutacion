@@ -90,7 +90,7 @@ int create_table(struct hash_table *** table){
 	}
 	return OK;
 }
-/*
+
 void free_table(struct hash_table ** table){
 	int i;
 	for (i=0;i<33;i++){
@@ -98,7 +98,6 @@ void free_table(struct hash_table ** table){
 		free(table[i]->first);
 		free(table[i]);
 	}
-	free(table);
 }
 
 void free_redirect(struct hash_table *table){
@@ -112,7 +111,7 @@ void free_redirect(struct hash_table *table){
 		aux=aux2;
 	}
 	free(aux);
-}*/
+}
 
 int put( struct hash_table *** table ){
 	int iface;
