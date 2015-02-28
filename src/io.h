@@ -1,3 +1,6 @@
+#ifndef _IO_H
+#define _IO_H
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -43,7 +46,7 @@ void freeIO();
 /***********************************************************************
  * Write explanation for error identifier (verbose mode) 
  ***********************************************************************/
-void printIOExplanationError(int result);
+void printErrorExplanation(int result);
 
 
 /***********************************************************************
@@ -101,3 +104,5 @@ void printSummary(int processedPackets, double averageTableAccesses, double aver
  *
  ***********************************************************************/    
 void printMemoryTimeUsage();
+
+#endif

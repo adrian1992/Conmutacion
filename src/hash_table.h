@@ -18,6 +18,7 @@
 
 #include <stdio.h>
 #include "io.h"
+#include "aux.h"
 
 #ifndef _HASH_TABLE
 #define _HASH_TABLE
@@ -25,13 +26,13 @@
 #define HASH_LENGTH 32
 
 
-typedef struct redirect{
+struct redirect{
 	uint32_t *IPAddress;
 	int *iface;
 	struct redirect *next;
 };
 
-typedef struct hash_table{
+struct hash_table{
 	int iface;
 	struct redirect *first;
 };
@@ -47,7 +48,7 @@ typedef struct hash_table{
  * 			0 OK
  */
 
-int create_table(struct hash_table ** table);
+int create_table(struct hash_table *** table);
 
 /*
  * Frees all the memory consumed at creation.
@@ -68,11 +69,12 @@ void free_table(struct hash_table ** table);
  * 		struct hash_table ** table: Pointer to the location in memory where the file system was built
  * Return:
  * 		int: error or succed code.
+ *			-3003 REACHED_EOF 
  * 			-3007 MEMORY_ALLOCATED_ERROR
  * 			0 OK
  */
 
-int put( struct hash_table ** table );
+int put( struct hash_table *** table );
 
 /*
  * Searches the output interface for an IP address.
@@ -86,6 +88,6 @@ int put( struct hash_table ** table );
  * 			iface
  */
 
-int *search(uint32_t IPaddress, struct hash_table ** table);
+int search(uint32_t IPaddress, struct hash_table ** table, int *hash_lookup);
 
 #endif //_HASH_TABLE

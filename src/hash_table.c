@@ -31,7 +31,7 @@
  * 		void
  */
 
-void free_redirect(struct hash_table  table);
+void free_redirect(struct hash_table  *table);
 
 /*
  * Creates the file system for the program. The main table to which all the hash tables are linked.
@@ -50,7 +50,7 @@ void free_redirect(struct hash_table  table);
  * 			0 OK
  */
 
-int put(int * iface, uint32_t *prefix, int prefixLength, int hash, struct hash_table ** table);
+int put_redirect(int iface, uint32_t prefix, int prefixLength, int hashed, struct hash_table *** table);
 
 /*
  * Searches the output interface for an IP address. between the possible collisions.
@@ -64,42 +64,36 @@ int put(int * iface, uint32_t *prefix, int prefixLength, int hash, struct hash_t
  * 			iface
  */
 
-int *search(uint32_t IPaddress, struct redirect *first){
-	while( *(first->IPAddress) != IPaddress && (first->next) != NULL )
-		first = first->next;
-	if( *(first->IPAddress) == IPaddress )
-		return first->iface;
-	return -1;
-}
+int search_redirect(uint32_t IPaddress, struct redirect *first);
 
 /*
  * Function definition
  */
 
-int create_table(struct hash_table ** table){
+int create_table(struct hash_table *** table){
 	int i, stable = 1<<16;
-	if( NULL == (table = malloc( 32, sizeof(struct hash_table *) ) ) ){
+	if( (*table = (struct hash_table **)malloc( 33*sizeof(struct hash_table *) ) ) == NULL ){
 		printf("There was an error allocating memory for the main table, aborting");
 		return MEMORY_ALLOCATED_ERROR;
 	}
 	for(i=0;i<16;i++){
-		if( NULL == (table[i]=calloc( 1<<i+1, sizeof(struct hash_table) ))){
+		if( NULL == ((*table)[i]=(struct hash_table *)calloc( 1<<i, sizeof(struct hash_table) ))){
 			printf("There was an error allocating memory for the %d hash table, aborting", i+1);
 			return MEMORY_ALLOCATED_ERROR;
 		}
 	}
-	for(i=16;i<32;i++){
-		if( NULL == (table[i]=calloc( stable, sizeof(struct hash_table) ))){
+	for(i=16;i<33;i++){
+		if( NULL == ((*table)[i]=(struct hash_table *)calloc( stable, sizeof(struct hash_table) ))){
 			printf("There was an error allocating memory for the %d hash table, aborting", i+1);
 			return MEMORY_ALLOCATED_ERROR;
 		}
 	}
 	return OK;
 }
-
+/*
 void free_table(struct hash_table ** table){
 	int i;
-	for (i=0;i<32;i++){
+	for (i=0;i<33;i++){
 		free_redirect(table[i]);
 		free(table[i]->first);
 		free(table[i]);
@@ -107,9 +101,9 @@ void free_table(struct hash_table ** table){
 	free(table);
 }
 
-void free_redirect(struct hash_table table){
+void free_redirect(struct hash_table *table){
 	struct redirect * aux, * aux2;
-	if((aux=table.first) == NULL)
+	if((aux=table->first) == NULL)
 		return;
 	while((aux2=aux->next)!=NULL){
 		free(aux->IPAddress);
@@ -118,67 +112,83 @@ void free_redirect(struct hash_table table){
 		aux=aux2;
 	}
 	free(aux);
-}
+}*/
 
-int put( struct hash_table ** table ){
-	int *iface, ret = OK;
-	uint32_t *prefix;
-	int *prefixLength;
+int put( struct hash_table *** table ){
+	int iface;
+	int ret = OK;
+	uint32_t prefix;
+	int prefixLength;
 	int sizeHashTable;
-	if( readFIBLine(prefix, prefixLength, iface) == OK ){
-		if(*prefixLength > 16)
+	if( ( ret = readFIBLine(&prefix, &prefixLength, &iface) ) == OK ){
+	  
+		if(prefixLength > 15)
 			sizeHashTable=16;
 		else
-			sizeHashTable=*prefixLength;
-		ret = put(iface, prefix, *prefixLength, hash(*prefix & getNetmask(prefixLength), sizeHashTable), table);
+			sizeHashTable=prefixLength;
+		ret = put_redirect(iface, prefix, prefixLength, hash((prefix & getNetmask(prefixLength)), sizeHashTable), table);
+		return OK;
+	}else{
+		if(ret == REACHED_EOF)
+			return REACHED_EOF;
+		return MEMORY_ALLOCATED_ERROR;
 	}
-	free(prefixLength);
-	return OK;
+//	return /*REACHED_EOF;*/ret;
 }
 
-int put(int * iface, uint32_t *prefix, int prefixLength, int hash, struct hash_table ** table){
+int put_redirect(int iface, uint32_t prefix, int prefixLength, int hashed, struct hash_table *** table){
 	struct redirect *aux;
-	if((aux=table[prefixLength][hash].first) == NULL){
-		if( NULL == (table[prefixLength][hash].first = malloc( sizeof(struct redirect) ))){
-			printf("There was an error allocating memory for the %d interface and %d IP address, aborting", *iface, *prefix);
-			return MEMORY_ALLOCATED_ERROR;
-		}
-		table[prefixLength][hash].first->IPAddress=prefix;
-		table[prefixLength][hash].first->iface=iface;
+	if((aux=(*table)[prefixLength][hashed].first) == NULL){
+ 		if( NULL == ((*table)[prefixLength][hashed].first = malloc( sizeof(struct redirect) ))){
+ 			printf("There was an error allocating memory for the %d interface and %d IP address, aborting", iface, prefix);
+ 			return MEMORY_ALLOCATED_ERROR;
+ 		}
+ 		(*table)[prefixLength][hashed].first->IPAddress = (uint32_t *)malloc(sizeof(uint32_t));
+		*(*table)[prefixLength][hashed].first->IPAddress = prefix;
+ 		(*table)[prefixLength][hashed].first->iface = (int *)malloc(sizeof(int));
+		*(*table)[prefixLength][hashed].first->iface = iface;
+		
+				printf("iface %d prefix %d\n",*(*table)[prefixLength][hashed].first->iface,*(*table)[prefixLength][hashed].first->IPAddress );
 	}else{
 		while(aux->next != NULL)
-			aux=aux.next;
+			aux=aux->next;
 		if( NULL == (aux = malloc( sizeof(struct redirect) ))){
-			printf("There was an error allocating memory for the %d interface and %d IP address, aborting", *iface, *prefix);
+			printf("There was an error allocating memory for the %d interface and %d IP address, aborting", iface, prefix);
 			return MEMORY_ALLOCATED_ERROR;
 		}
-		aux->IPAddress=prefix;
-		aux->iface=iface;
+		(*table)[prefixLength][hashed].first->IPAddress= (uint32_t *)malloc(sizeof(uint32_t));
+		*(*table)[prefixLength][hashed].first->IPAddress = prefix;
+ 		(*table)[prefixLength][hashed].first->iface = (int *)malloc(sizeof(int));
+		*(*table)[prefixLength][hashed].first->iface = iface;
 	}
 	return OK;
 }
 
-int *search(uint32_t IPaddress, struct hash_table ** table){
-	int i, IPprefix, hash, ret;
+int search(uint32_t IPaddress, struct hash_table ** table, int *hash_lookup){
+	int i,  hashed, ret;
+	uint32_t IPprefix;
 	for (i=32;i>=0;i--){
-		IPprefix = &IPaddress & getNetmask(i);
-		if(i>15)
-			hash=hash(&IPprefix, 16);
+		IPprefix = IPaddress & getNetmask(i);
+		if(i>16)
+			hashed=hash(IPprefix, 16);
 		else
-			hash=hash(&IPprefix, i);
-		if( ( ret=search(IPaddress, table[i][hash].first) ) != -1 ){
+			hashed=hash(IPprefix, i);
+
+		if( ( ret=search_redirect(IPprefix, table[i][hashed].first) ) != -1 ){
+			*hash_lookup = 33-i+1;
 			return ret;
 		}
 	}
 	return ADDRESS_COULDNT_RESOLVE;
 }
 
-int *search(uint32_t IPaddress, struct redirect *first){
-	while( *(first->IPAddress) != IPaddress && (first->next) != NULL )
-		first = first->next;
-	if( *(first->IPAddress) == IPaddress )
-		return first->iface;
+int search_redirect(uint32_t IPaddress, struct redirect *first){
+	if(first != NULL){
+		while( (first->next) != NULL && *(first->IPAddress) != IPaddress )
+			first = first->next;
+ 		if( *(first->IPAddress) == IPaddress ){
+			return *first->iface;
+		}
+	}
 	return -1;
 }
-
-

@@ -21,24 +21,24 @@ int initializeIO(char *routingTableName, char *inputFileName){
 
 	char outputFileName[100];
 
-  routingTable = fopen(routingTableName, "r");
-  if (routingTable == NULL) return ROUTING_TABLE_NOT_FOUND;
+	routingTable = fopen(routingTableName, "r");
+	if (routingTable == NULL) 
+		return ROUTING_TABLE_NOT_FOUND;
 
-  inputFile = fopen(inputFileName, "r");
-  if (inputFile == NULL) {
-  	fclose(routingTable);
-   	return INPUT_FILE_NOT_FOUND;
- 	}
+	inputFile = fopen(inputFileName, "r");
+	if (inputFile == NULL) {
+		fclose(routingTable);
+		return INPUT_FILE_NOT_FOUND;
+	}
 
-  sprintf(outputFileName, "%s%s", inputFileName, OUTPUT_NAME);
-  outputFile = fopen(outputFileName, "w");
-  if (outputFile == NULL) {
-    fclose(routingTable);
-    fclose(inputFile);
-    return CANNOT_CREATE_OUTPUT;
-  }
-
-  return OK;
+	sprintf(outputFileName, "%s%s", inputFileName, OUTPUT_NAME);
+	outputFile = fopen(outputFileName, "w");
+	if (outputFile == NULL) {
+		fclose(routingTable);
+		fclose(inputFile);
+		return CANNOT_CREATE_OUTPUT;
+	}
+	return OK;
 
 }
 
@@ -58,30 +58,35 @@ void freeIO() {
 /***********************************************************************
  * Write explanation for error identifier (verbose mode) 
  ***********************************************************************/
-void printIOExplanationError(int result){
-
+void printErrorExplanation(int result){
 	switch(result) {
-    case ROUTING_TABLE_NOT_FOUND:
-      printf("Routing table not found\n");
-
-    case INPUT_FILE_NOT_FOUND:
-      printf("Input file not found\n");
-    
-    case BAD_ROUTING_TABLE:
-      printf("Bad routing table structure\n");
-
-    case BAD_INPUT_FILE:
-      printf("Bad input file structure\n");
-
-    case PARSE_ERROR:
-      printf("Parse error\n");
-
-    case CANNOT_CREATE_OUTPUT:
-      printf("Cannot create output file\n");
-
-    default:
-      printf("Unknown error\n");
-  }
+	case ROUTING_TABLE_NOT_FOUND:
+		printf("Routing table not found\n");
+		break;
+	case INPUT_FILE_NOT_FOUND:
+		printf("Input file not found\n");
+		break;
+	case BAD_ROUTING_TABLE:
+		printf("Bad routing table structure\n");
+		break;
+	case BAD_INPUT_FILE:
+		printf("Bad input file structure\n");
+		break;
+	case PARSE_ERROR:
+		printf("Parse error\n");
+		break;
+	case CANNOT_CREATE_OUTPUT:
+		printf("Cannot create output file\n");
+		break;
+	case MEMORY_ALLOCATED_ERROR:
+		printf("Cannot allocate memory for the system\n");
+		break;
+	case ADDRESS_COULDNT_RESOLVE:
+		printf("Address couldn't be resolved\n");
+		break;
+	default:
+		printf("Unknown error\n");
+  	}
 
 }
 
@@ -94,19 +99,21 @@ void printIOExplanationError(int result){
  * 
  ***********************************************************************/
 int readFIBLine(uint32_t *prefix, int *prefixLength, int *outInterface){
-	
-	int n[4], result;
-	
-	result = fscanf(routingTable, "%i.%i.%i.%i/%i\t%i\n", &n[0], &n[1], &n[2], &n[3], prefixLength, outInterface);
-	if (result == EOF) return REACHED_EOF;
-  else if (result != 6) return BAD_ROUTING_TABLE;
-  else{
- 		//remember that pentium architecture is little endian
- 		*prefix = (n[0]<<24) + (n[1]<<16) + (n[2]<<8) + n[3];
-		//*prefix = n[0]*pow(2,24) + n[1]*pow(2,16) + n[2]*pow(2,8) + n[3];
-		return OK;
-	}
 
+	int n[4], result;
+
+	result = fscanf(routingTable, "%i.%i.%i.%i/%i\t%i\n", &n[0], &n[1], &n[2], &n[3], prefixLength, outInterface);
+	if (result == EOF)
+		return REACHED_EOF;
+	else 
+		if (result != 6) 
+			return BAD_ROUTING_TABLE;
+		else{
+			//remember that pentium architecture is little endian
+			*prefix = (n[0]<<24) + (n[1]<<16) + (n[2]<<8) + n[3];
+			//*prefix = n[0]*pow(2,24) + n[1]*pow(2,16) + n[2]*pow(2,8) + n[3];
+			return OK;
+		}
 }
 
 
