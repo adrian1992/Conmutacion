@@ -25,7 +25,6 @@
 
 #define HASH_LENGTH 32
 
-
 struct redirect{
 	uint32_t *IPAddress;
 	int *iface;
@@ -33,22 +32,28 @@ struct redirect{
 };
 
 struct hash_table{
-	int iface;
 	struct redirect *first;
+};
+
+struct binary_tree{
+	int prefix;
+	struct hash_table *table;
+	struct binary_tree *left;
+	struct binary_tree *rigth;
 };
 
 /*
  * Creates the file system for the program. The main table to which all the hash tables are linked.
  *
  * Parameters:
- * 		struct hash_table ** table: Pointer to the location in memory where the file system was built
+ * 		struct binary_tree ** tree: Pointer to the location in memory where the file system was built
  * Return:
  * 		int: error or succed code.
  * 			-3007 MEMORY_ALLOCATED_ERROR
  * 			0 OK
  */
 
-int create_table(struct hash_table *** table);
+int create_table(struct binary_tree ** tree);
 
 /*
  * Frees all the memory consumed at creation.
