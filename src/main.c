@@ -21,14 +21,14 @@
 #include "aux.h"
 #include <time.h>
 
-int initialize(struct hash_table *** table){
+int initialize(struct binary_tree ** tree){
 	int error = MEMORY_ALLOCATED_ERROR;	
 // Started building file system
-	if( ( error = create_table(table) ) == OK ){
+	if( ( error = create_table(tree) ) == OK ){
 
-		while( ( error = put( table ) ) == OK);
-		if(error == REACHED_EOF)
-			return OK;
+//		while( ( error = put( tree ) ) == OK);
+//		if(error == REACHED_EOF)
+//			return OK;
 	}else{
 		printErrorExplanation(error);
 		return error;
@@ -44,24 +44,24 @@ int main(int n_args, char *args[]){
 	struct timeval tic, toc;
 	double tac;
 	if(n_args<4){
-		struct hash_table ** table = NULL;
+		struct binary_tree ** tree = NULL;
 		if( ( error = initializeIO(args[1], args[2]) ) == OK ){
 			// Initialize
-			if(initialize( &table ) == OK ){
+			if(initialize( &tree ) == OK ){
 				// Search and route
-				while(readInputPacketFileLine(&ipAddress)!=REACHED_EOF){
-					gettimeofday (&tic, NULL);
-					if((busqueda=search(ipAddress, table, &hash_lookup))!=ADDRESS_COULDNT_RESOLVE){
-						gettimeofday (&toc, NULL);
-						tac = toc.tv_usec - tic.tv_usec;
-						printf("ip %d, busqueda %d,\n",ipAddress, busqueda);
-						printOutputLine(ipAddress, busqueda, &tic, &toc, &tac, hash_lookup);
-					}
-				}
-				// End search and route
-				freeIO();
-				free_table(table);
-				free(table);
+//				while(readInputPacketFileLine(&ipAddress)!=REACHED_EOF){
+//					gettimeofday (&tic, NULL);
+//					if((busqueda=search(ipAddress, tree, &hash_lookup))!=ADDRESS_COULDNT_RESOLVE){
+//						gettimeofday (&toc, NULL);
+//						tac = toc.tv_usec - tic.tv_usec;
+//						printf("ip %d, busqueda %d,\n",ipAddress, busqueda);
+//						printOutputLine(ipAddress, busqueda, &tic, &toc, &tac, hash_lookup);
+//					}
+//				}
+//				// End search and route
+//				freeIO();
+//				free_table(table);
+//				free(table);
 			}
 			// End initialize
 			freeIO();

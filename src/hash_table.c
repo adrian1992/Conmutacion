@@ -73,9 +73,7 @@ int search_redirect(uint32_t IPaddress, struct redirect *first);
  */
 
 int create_table(struct binary_tree ** tree){
-	int i;
-	struct binary_tree *aux;
-	if( (*tree = (struct binary_tree *)malloc( sizeof(struct binary_tree) ) ) == NULL ){
+	if( ((*tree) = (struct binary_tree *)malloc( sizeof(struct binary_tree) ) ) == NULL ){
 		printf("There was an error allocating memory for the main table, aborting");
 		return MEMORY_ALLOCATED_ERROR;
 	}
@@ -95,29 +93,29 @@ int search(uint32_t IPaddress, struct hash_table ** table, int *hash_lookup){
 }
 
 int build_tree(struct binary_tree **tree, int id){
-	*tree->prefix=id;
-	if( (*tree->table=(struct hash_table *)malloc( sizeof(struct hash_table) ) ) == NULL ){
+	(*tree)->prefix=id;
+	if( ((*tree)->table=(struct hash_table *)malloc( sizeof(struct hash_table) ) ) == NULL ){
 		printf("There was an error allocating memory for the main table, aborting");
 		return MEMORY_ALLOCATED_ERROR;
 	}
 	// Odd nodes
 	if( (id % 2) == 1 ){
-		*tree->rigth=NULL;
-		*tree->left=NULL;
+		(*tree)->rigth=NULL;
+		(*tree)->left=NULL;
 		if(id == 1){
-			if( (*tree->left=(struct binary_tree *)malloc( sizeof(struct binary_tree) ) ) == NULL ){
+			if( ((*tree)->left=(struct binary_tree *)malloc( sizeof(struct binary_tree) ) ) == NULL ){
 				printf("There was an error allocating memory for the main table, aborting");
 				return MEMORY_ALLOCATED_ERROR;
 			}else{
-				build_tree(&(*tree->left),0);
+				build_tree(&((*tree)->left),0);
 			}
 		}
 		if(id == 31){
-			if( (*tree->rigth=(struct binary_tree *)malloc( sizeof(struct binary_tree) ) ) == NULL ){
+			if( ((*tree)->rigth=(struct binary_tree *)malloc( sizeof(struct binary_tree) ) ) == NULL ){
 				printf("There was an error allocating memory for the main table, aborting");
 				return MEMORY_ALLOCATED_ERROR;
 			}else{
-				build_tree(&(*tree->rigth),32);
+				build_tree(&((*tree)->rigth),32);
 			}
 		}
 	}// End odd nodes
@@ -125,38 +123,38 @@ int build_tree(struct binary_tree **tree, int id){
 		// Even nodes
 		// Bottom node
 		if( id==0 || id==32 ){
-			*tree->rigth=NULL;
-			*tree->left=NULL;
+			(*tree)->rigth=NULL;
+			(*tree)->left=NULL;
 			return OK;
 		}// End bottom node
 		// Superior nodes
 		if(id%4 == 0){
-			if( (*tree->left=(struct binary_tree *)malloc( sizeof(struct binary_tree) ) ) == NULL ){
+			if( ((*tree)->left=(struct binary_tree *)malloc( sizeof(struct binary_tree) ) ) == NULL ){
 				printf("There was an error allocating memory for the main table, aborting");
 				return MEMORY_ALLOCATED_ERROR;
 			}else{
-				build_tree(&(*tree->left), id-id/2);
+				build_tree(&((*tree)->left), id-id/2);
 			}
-			if( (*tree->rigth=(struct binary_tree *)malloc( sizeof(struct binary_tree) ) ) == NULL ){
+			if( ((*tree)->rigth=(struct binary_tree *)malloc( sizeof(struct binary_tree) ) ) == NULL ){
 				printf("There was an error allocating memory for the main table, aborting");
 				return MEMORY_ALLOCATED_ERROR;
 			}else{
-				build_tree(&(*tree->rigth), id+id/2);
+				build_tree(&((*tree)->rigth), id+id/2);
 			}
 			// End superior nodes
 		}else{
 			// Middle nodes
-			if( (*tree->left=(struct binary_tree *)malloc( sizeof(struct binary_tree) ) ) == NULL ){
+			if( ((*tree)->left=(struct binary_tree *)malloc( sizeof(struct binary_tree) ) ) == NULL ){
 				printf("There was an error allocating memory for the main table, aborting");
 				return MEMORY_ALLOCATED_ERROR;
 			}else{
-				build_tree(&(*tree->left), id-1);
+				build_tree(&((*tree)->left), id-1);
 			}
-			if( (*tree->rigth=(struct binary_tree *)malloc( sizeof(struct binary_tree) ) ) == NULL ){
+			if( ((*tree)->rigth=(struct binary_tree *)malloc( sizeof(struct binary_tree) ) ) == NULL ){
 				printf("There was an error allocating memory for the main table, aborting");
 				return MEMORY_ALLOCATED_ERROR;
 			}else{
-				build_tree(&(*tree->rigth), id+1);
+				build_tree(&((*tree)->rigth), id+1);
 			}
 			// End middle nodes
 		}
