@@ -22,29 +22,46 @@
  * Prototypes
  */
 
+/*
+ * Builds the hash tables tree that is the base for the algorithm. This method is recursive.
+ * Parameters:
+ * 		struct binary_tree **tree: Pointer to the location in memory where the tree will be stored.
+ * 		int id: Id of the tree node.
+ * Return:
+ * 		int: error or succed code.
+ * 			-3007 MEMORY_ALLOCATED_ERROR
+ * 			0 OK
+ */
+
 int build_tree(struct binary_tree **tree, int id);
 
 /*
- * Frees the redirect list and its pointers to other memory locations.
+ * Looks for the leaves on the tree where to put the given prefix. It calls put_redirect to put it
+ * inside the hash table. This method is recursive.
  *
  * Parameters:
- * 		struct hash_table  table: parent of the redirect list.
- * Return:
- * 		void
+ * 		int iface: Interface information about this FIB
+ * 		uint32_t prefix: IP address information about this FIB
+ * 		int length: Length of the netmask. used to find the position in the main table
+ * 		struct binary_tree *tree: Pointer to the tree struct where the given FIB is going to be stored.
+ * 	Return:
+ * 		int: error or succed code.
+ * 			-3007 MEMORY_ALLOCATED_ERROR
+ * 			0 OK
  */
 
-void free_redirect(struct hash_table  *table);
+int put_in_tree( int iface, uint32_t prefix, int length, struct binary_tree *tree );
 
 /*
  * Creates the file system for the program. The main table to which all the hash tables are linked.
  *
  * Parameters:
- * 		int * iface: Pointer to the location in memory where the interface information about this FIB
+ * 		int iface: Pointer to the location in memory where the interface information about this FIB
  * 				is stored
- * 		uint32_t *prefix: Pointer to the location in memory where the IP address information about this
+ * 		uint32_t prefix: Pointer to the location in memory where the IP address information about this
  * 				FIB	is stored
  * 		int prefixLength: Length of the netmask. used to find the position in the main table
- * 		int hash: Indes of the data given inside the hash table.
+ * 		int sizeHashTable: Size of the hash table.
  * 		struct hash_table ** table: Pointer to the location in memory where the file system was built
  * Return:
  * 		int: error or succed code.
@@ -52,10 +69,10 @@ void free_redirect(struct hash_table  *table);
  * 			0 OK
  */
 
-int put_redirect(int iface, uint32_t prefix, int prefixLength, int hashed, struct hash_table *** table);
+int put_redirect(int iface, uint32_t prefix, int prefixLength, int sizeHashTable, struct hash_table ** table);
 
 /*
- * Searches the output interface for an IP address. between the possible collisions.
+ * Searches the output interface for an IP address between the possible collisions.
  *
  * Parameters:
  * 		uint32_t IPaddress: Ip address to search in the tables.
@@ -69,6 +86,28 @@ int put_redirect(int iface, uint32_t prefix, int prefixLength, int hashed, struc
 int search_redirect(uint32_t IPaddress, struct redirect *first);
 
 /*
+ * Frees all the memory consumed at creation.
+ *
+ * Parameters:
+ * 		struct hash_table ** table: Pointer to the location in memory where the file system was built
+ * Return:
+ * 		void
+ */
+
+void free_tree(struct hash_table ** table);
+
+/*
+ * Frees the redirect list and its pointers to other memory locations.
+ *
+ * Parameters:
+ * 		struct hash_table  table: parent of the redirect list.
+ * Return:
+ * 		void
+ */
+
+void free_redirect(struct hash_table  *table);
+
+/*
  * Function definition
  */
 
@@ -78,10 +117,6 @@ int create_tree(struct binary_tree ** tree){
 		return MEMORY_ALLOCATED_ERROR;
 	}
 	return build_tree(tree, HALF_IP);
-}
-
-void free_tree(struct hash_table ** table){
-
 }
 
 int put( struct binary_tree **tree ){
@@ -97,6 +132,14 @@ int put( struct binary_tree **tree ){
 int search(uint32_t IPaddress, struct hash_table ** table, int *hash_lookup){
 
 }
+
+void free_tree(struct hash_table ** table){
+
+}
+
+/*
+ * Private functions
+ */
 
 int build_tree(struct binary_tree **tree, int id){
 	(*tree)->prefix=id;
@@ -168,10 +211,6 @@ int build_tree(struct binary_tree **tree, int id){
 	return OK;
 }
 
-void free_redirect(struct hash_table *table){
-
-}
-
 int put_in_tree( int iface, uint32_t prefix, int length, struct binary_tree *tree ){
 	int size;
 	if(prefix > HALF_IP){
@@ -216,5 +255,9 @@ int put_redirect(int iface, uint32_t prefix, int prefixLength, int sizeHashTable
 }
 
 int search_redirect(uint32_t IPaddress, struct redirect *first){
+
+}
+
+void free_redirect(struct hash_table *table){
 
 }

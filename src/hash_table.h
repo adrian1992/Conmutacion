@@ -44,7 +44,7 @@ struct binary_tree{
 };
 
 /*
- * Creates the file system for the program. The main table to which all the hash tables are linked.
+ * Creates the file system for the program. The tree to which all the hash tables are linked.
  *
  * Parameters:
  * 		struct binary_tree ** tree: Pointer to the location in memory where the file system was built
@@ -57,17 +57,6 @@ struct binary_tree{
 int create_tree(struct binary_tree ** tree);
 
 /*
- * Frees all the memory consumed at creation.
- *
- * Parameters:
- * 		struct hash_table ** table: Pointer to the location in memory where the file system was built
- * Return:
- * 		void
- */
-
-void free_tree(struct hash_table ** table);
-
-/*
  * Puts a new FIB in the file system. The initializeIO(char *routingTableName, char *inputFileName) function
  * Should have been used before this method is called.
  *
@@ -75,12 +64,12 @@ void free_tree(struct hash_table ** table);
  * 		struct hash_table ** table: Pointer to the location in memory where the file system was built
  * Return:
  * 		int: error or succed code.
- *			-3003 REACHED_EOF 
+ *			-3003 REACHED_EOF
  * 			-3007 MEMORY_ALLOCATED_ERROR
  * 			0 OK
  */
 
-int put( struct hash_table *** table );
+int put( struct binary_tree **tree );
 
 /*
  * Searches the output interface for an IP address.
@@ -95,5 +84,16 @@ int put( struct hash_table *** table );
  */
 
 int search(uint32_t IPaddress, struct hash_table ** table, int *hash_lookup);
+
+/*
+ * Frees all the memory consumed at creation.
+ *
+ * Parameters:
+ * 		struct hash_table ** table: Pointer to the location in memory where the file system was built
+ * Return:
+ * 		void
+ */
+
+void free_tree(struct hash_table ** table);
 
 #endif //_HASH_TABLE
