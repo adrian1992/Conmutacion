@@ -24,10 +24,11 @@
 #define _HASH_TABLE
 
 #define HASH_LENGTH 32
+#define HALF_IP 16
 
 struct redirect{
-	uint32_t *IPAddress;
-	int *iface;
+	uint32_t IPAddress;
+	int iface;
 	struct redirect *next;
 };
 
@@ -53,7 +54,7 @@ struct binary_tree{
  * 			0 OK
  */
 
-int create_table(struct binary_tree ** tree);
+int create_tree(struct binary_tree ** tree);
 
 /*
  * Frees all the memory consumed at creation.
@@ -64,7 +65,7 @@ int create_table(struct binary_tree ** tree);
  * 		void
  */
 
-void free_table(struct hash_table ** table);
+void free_tree(struct hash_table ** table);
 
 /*
  * Puts a new FIB in the file system. The initializeIO(char *routingTableName, char *inputFileName) function

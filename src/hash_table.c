@@ -72,20 +72,26 @@ int search_redirect(uint32_t IPaddress, struct redirect *first);
  * Function definition
  */
 
-int create_table(struct binary_tree ** tree){
+int create_tree(struct binary_tree ** tree){
 	if( ((*tree) = (struct binary_tree *)malloc( sizeof(struct binary_tree) ) ) == NULL ){
 		printf("There was an error allocating memory for the main table, aborting");
 		return MEMORY_ALLOCATED_ERROR;
 	}
-	return build_tree(tree, 16);
+	return build_tree(tree, HALF_IP);
 }
 
-void free_table(struct hash_table ** table){
+void free_tree(struct hash_table ** table){
 
 }
 
-int put( struct hash_table *** table ){
-
+int put( struct binary_tree **tree ){
+	uint32_t prefix = 0;
+	int prefixLength, outInterface, error;
+	if( (error = readFIBLine(&prefix, &prefixLength, &outInterface)) == OK ){
+		put_in_tree(outInterface, prefix, prefixLength, *tree);
+		return OK;
+	}
+	return error;
 }
 
 int search(uint32_t IPaddress, struct hash_table ** table, int *hash_lookup){
@@ -166,8 +172,47 @@ void free_redirect(struct hash_table *table){
 
 }
 
-int put_redirect(int iface, uint32_t prefix, int prefixLength, int hashed, struct hash_table *** table){
+int put_in_tree( int iface, uint32_t prefix, int length, struct binary_tree *tree ){
+	int size;
+	if(prefix > HALF_IP){
+		size = 1 << HALF_IP;
+	}else{
+		size = 1 << tree->prefix;
+	}
+	if(prefix == tree->prefix){
+		return put_redirect(iface, prefix, length, size, &(tree->table));
+	}
+	if( prefix > tree->prefix ){
+		if(put_redirect(iface, prefix, length, size, &(tree->table)) == OK)
+			return put_in_tree(iface, prefix, length, tree->rigth);
+		else
+			return MEMORY_ALLOCATED_ERROR;
+	}else
+		return put_in_tree(iface, prefix, length, tree->left);
+}
 
+int put_redirect(int iface, uint32_t prefix, int prefixLength, int sizeHashTable, struct hash_table ** table){
+	int hash = hash(prefix, sizeHashTable);
+	if( (*table)[hash].first == NULL ){
+		if( ((*table)[hash].first = (struct redirect *)calloc(1, sizeof(struct redirect))) == NULL ){
+			printf("There was an error allocating memory for the main table, aborting");
+			return MEMORY_ALLOCATED_ERROR;
+		}
+		(*table)[hash].first->IPAddress=prefix;
+		(*table)[hash].first->iface=iface;
+		return OK;
+	}else{
+		struct redirect * aux = (*table)[hash].first;
+		while(aux->next != NULL)
+			aux = aux->next;
+		if( (aux->next = (struct redirect *)calloc(1, sizeof(struct redirect))) == NULL ){
+			printf("There was an error allocating memory for the main table, aborting");
+			return MEMORY_ALLOCATED_ERROR;
+		}
+		aux->next->IPAddress=prefix;
+		aux->next->iface=iface;
+		return OK;
+	}
 }
 
 int search_redirect(uint32_t IPaddress, struct redirect *first){
