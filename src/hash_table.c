@@ -94,7 +94,7 @@ int search_redirect(uint32_t IPaddress, struct redirect *first);
  * 		void
  */
 
-void free_tree(struct hash_table ** table);
+void free_table(struct hash_table * table);
 
 /*
  * Frees the redirect list and its pointers to other memory locations.
@@ -145,8 +145,13 @@ int search(uint32_t IPaddress, struct binary_tree * tree){
 	return iface;
 }
 
-void free_tree(struct hash_table ** table){
-
+void free_tree(struct binary_tree * tree){
+	if(tree->left != NULL)
+		free_tree(tree->left);
+	if(tree->rigth != NULL)
+		free_tree(tree->rigth);
+	free_table(tree->table);
+	free(tree);
 }
 
 /*
@@ -281,6 +286,17 @@ int search_redirect(uint32_t IPaddress, struct redirect *first){
 	}
 }
 
-void free_redirect(struct hash_table *table){
+void free_table(struct hash_table *table, int size){
+	int i ;
+	for (i=0;i< size;i++)
+		free_redirect(table[i].first);
+	free(table);
+}
 
+void free_redirect(struct redirect *first){
+	if(first == NULL)
+		return;
+	if(first->next != NULL)
+		free_redirect(first->next);
+	free(first);
 }
