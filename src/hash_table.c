@@ -129,8 +129,20 @@ int put( struct binary_tree **tree ){
 	return error;
 }
 
-int search(uint32_t IPaddress, struct hash_table ** table, int *hash_lookup){
-
+int search(uint32_t IPaddress, struct binary_tree * tree){
+	int iface = ADDRESS_COULDNT_RESOLVE;
+	int aux;
+	int hash = hash(getNetmask(tree->prefix) & IPaddress);
+	if ((iface = search_redirect(hash, tree->table[hash].first)) != ADDRESS_COULDNT_RESOLVE){
+		if((aux = search(IPaddress, tree->rigth)) != ADDRESS_COULDNT_RESOLVE)
+			return aux;
+		else
+			return iface;
+	}else{
+		if((aux = search(IPaddress, tree->left)) != ADDRESS_COULDNT_RESOLVE)
+			return aux;
+	}
+	return iface;
 }
 
 void free_tree(struct hash_table ** table){
@@ -255,7 +267,18 @@ int put_redirect(int iface, uint32_t prefix, int prefixLength, int sizeHashTable
 }
 
 int search_redirect(uint32_t IPaddress, struct redirect *first){
-
+	if(first == NULL)
+		return ADDRESS_COULDNT_RESOLVE;
+	else
+	{
+		struct redirect * aux = first;
+		while(aux->IPAddress != IPaddress && aux->next != NULL)
+			aux = aux->next;
+		if(aux->IPAddress != IPaddress)
+			return ADDRESS_COULDNT_RESOLVE;
+		else
+			return aux->iface;
+	}
 }
 
 void free_redirect(struct hash_table *table){

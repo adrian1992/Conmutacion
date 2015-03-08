@@ -83,7 +83,7 @@ int put( struct binary_tree **tree );
  * 			iface
  */
 
-int search(uint32_t IPaddress, struct hash_table ** table, int *hash_lookup);
+int search(uint32_t IPaddress, struct hash_table ** table);
 
 /*
  * Frees all the memory consumed at creation.
