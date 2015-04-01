@@ -83,7 +83,7 @@ int put_redirect(int iface, uint32_t prefix, int prefixLength, int sizeHashTable
  * 			iface
  */
 
-int search_redirect(uint32_t IPaddress, struct redirect *first);
+int search_redirect(uint32_t IPaddress, struct redirect *first, int *hash_lookup);
 
 /*
  * Frees all the memory consumed at creation.
@@ -94,7 +94,7 @@ int search_redirect(uint32_t IPaddress, struct redirect *first);
  * 		void
  */
 
-void free_table(struct hash_table * table);
+void free_table(struct hash_table * table, int size);
 
 /*
  * Frees the redirect list and its pointers to other memory locations.
@@ -105,7 +105,7 @@ void free_table(struct hash_table * table);
  * 		void
  */
 
-void free_redirect(struct hash_table  *table);
+void free_redirect(struct redirect *first);
 
 /*
  * Function definition
@@ -129,17 +129,22 @@ int put( struct binary_tree **tree ){
 	return error;
 }
 
-int search(uint32_t IPaddress, struct binary_tree * tree){
+int search(uint32_t IPaddress, struct binary_tree * tree, int *hash_lookup){
 	int iface = ADDRESS_COULDNT_RESOLVE;
-	int aux;
-	int hash = hash(getNetmask(tree->prefix) & IPaddress);
-	if ((iface = search_redirect(hash, tree->table[hash].first)) != ADDRESS_COULDNT_RESOLVE){
-		if((aux = search(IPaddress, tree->rigth)) != ADDRESS_COULDNT_RESOLVE)
+	int aux, size;
+	if(tree->prefix > HALF_IP){
+		size = 1 << HALF_IP;
+	}else{
+		size = 1 << tree->prefix;
+	}
+	int hashe = hash(getNetmask(tree->prefix) & IPaddress, size);
+	if ((iface = search_redirect(hashe, tree->table[hashe].first, hash_lookup)) != ADDRESS_COULDNT_RESOLVE){
+		if((aux = search(IPaddress, tree->rigth, hash_lookup)) != ADDRESS_COULDNT_RESOLVE)
 			return aux;
 		else
 			return iface;
 	}else{
-		if((aux = search(IPaddress, tree->left)) != ADDRESS_COULDNT_RESOLVE)
+		if((aux = search(IPaddress, tree->left, hash_lookup)) != ADDRESS_COULDNT_RESOLVE)
 			return aux;
 	}
 	return iface;
@@ -150,7 +155,13 @@ void free_tree(struct binary_tree * tree){
 		free_tree(tree->left);
 	if(tree->rigth != NULL)
 		free_tree(tree->rigth);
-	free_table(tree->table);
+	int size;
+	if(tree->prefix > HALF_IP){
+		size = 1 << HALF_IP;
+	}else{
+		size = 1 << tree->prefix;
+	}
+	free_table(tree->table, size);
 	free(tree);
 }
 
@@ -248,17 +259,17 @@ int put_in_tree( int iface, uint32_t prefix, int length, struct binary_tree *tre
 }
 
 int put_redirect(int iface, uint32_t prefix, int prefixLength, int sizeHashTable, struct hash_table ** table){
-	int hash = hash(prefix, sizeHashTable);
-	if( (*table)[hash].first == NULL ){
-		if( ((*table)[hash].first = (struct redirect *)calloc(1, sizeof(struct redirect))) == NULL ){
+	int hashe = hash(prefix, sizeHashTable);
+	if( (*table)[hashe].first == NULL ){
+		if( ((*table)[hashe].first = (struct redirect *)calloc(1, sizeof(struct redirect))) == NULL ){
 			printf("There was an error allocating memory for the main table, aborting");
 			return MEMORY_ALLOCATED_ERROR;
 		}
-		(*table)[hash].first->IPAddress=prefix;
-		(*table)[hash].first->iface=iface;
+		(*table)[hashe].first->IPAddress=prefix;
+		(*table)[hashe].first->iface=iface;
 		return OK;
 	}else{
-		struct redirect * aux = (*table)[hash].first;
+		struct redirect * aux = (*table)[hashe].first;
 		while(aux->next != NULL)
 			aux = aux->next;
 		if( (aux->next = (struct redirect *)calloc(1, sizeof(struct redirect))) == NULL ){
@@ -271,14 +282,15 @@ int put_redirect(int iface, uint32_t prefix, int prefixLength, int sizeHashTable
 	}
 }
 
-int search_redirect(uint32_t IPaddress, struct redirect *first){
+int search_redirect(uint32_t IPaddress, struct redirect *first, int *hash_lookup){
 	if(first == NULL)
 		return ADDRESS_COULDNT_RESOLVE;
 	else
 	{
 		struct redirect * aux = first;
-		while(aux->IPAddress != IPaddress && aux->next != NULL)
-			aux = aux->next;
+		while(aux->IPAddress != IPaddress && aux->next != NULL){
+			*hash_lookup += 1;
+			aux = aux->next;}
 		if(aux->IPAddress != IPaddress)
 			return ADDRESS_COULDNT_RESOLVE;
 		else
