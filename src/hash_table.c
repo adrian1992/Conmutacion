@@ -27,13 +27,14 @@
  * Parameters:
  * 		struct binary_tree **tree: Pointer to the location in memory where the tree will be stored.
  * 		int id: Id of the tree node.
+ * 		int depth: depth into the tree.
  * Return:
  * 		int: error or succed code.
  * 			-3007 MEMORY_ALLOCATED_ERROR
  * 			0 OK
  */
 
-int build_tree(struct binary_tree **tree, int id);
+int build_tree(struct binary_tree **tree, int id, int depth);
 
 /*
  * Looks for the leaves on the tree where to put the given prefix. It calls put_redirect to put it
@@ -116,7 +117,7 @@ int create_tree(struct binary_tree ** tree){
 		printf("There was an error allocating memory for the main table, aborting");
 		return MEMORY_ALLOCATED_ERROR;
 	}
-	return build_tree(tree, HALF_IP);
+	return build_tree(tree, HALF_IP,0);
 }
 
 int put( struct binary_tree **tree ){
@@ -131,6 +132,8 @@ int put( struct binary_tree **tree ){
 
 int search(uint32_t IPaddress, struct binary_tree * tree, int *hash_lookup){
 	int iface = ADDRESS_COULDNT_RESOLVE;
+	if(tree == NULL)
+		return iface;
 	int aux, size;
 	if(tree->prefix > HALF_IP){
 		size = 1 << HALF_IP;
@@ -169,9 +172,15 @@ void free_tree(struct binary_tree * tree){
  * Private functions
  */
 
-int build_tree(struct binary_tree **tree, int id){
-	(*tree)->prefix=id;
-	if( ((*tree)->table=(struct hash_table *)malloc( sizeof(struct hash_table) ) ) == NULL ){
+int build_tree(struct binary_tree **tree, int id, int depth){
+	printf("%d tree\n", id);
+	int size;
+	if(((*tree)->prefix=id) > HALF_IP){
+		size = 1 << HALF_IP;
+	}else{
+		size = 1 << id;
+	}
+	if( ((*tree)->table=(struct hash_table *)malloc( size*sizeof(struct hash_table) ) ) == NULL ){
 		printf("There was an error allocating memory for the main table, aborting");
 		return MEMORY_ALLOCATED_ERROR;
 	}
@@ -184,7 +193,7 @@ int build_tree(struct binary_tree **tree, int id){
 				printf("There was an error allocating memory for the main table, aborting");
 				return MEMORY_ALLOCATED_ERROR;
 			}else{
-				build_tree(&((*tree)->left),0);
+				build_tree(&((*tree)->left),0,0);
 			}
 		}
 		if(id == 31){
@@ -192,7 +201,7 @@ int build_tree(struct binary_tree **tree, int id){
 				printf("There was an error allocating memory for the main table, aborting");
 				return MEMORY_ALLOCATED_ERROR;
 			}else{
-				build_tree(&((*tree)->rigth),32);
+				build_tree(&((*tree)->rigth),32,0);
 			}
 		}
 	}// End odd nodes
@@ -206,17 +215,18 @@ int build_tree(struct binary_tree **tree, int id){
 		}// End bottom node
 		// Superior nodes
 		if(id%4 == 0){
+			depth++;
 			if( ((*tree)->left=(struct binary_tree *)malloc( sizeof(struct binary_tree) ) ) == NULL ){
 				printf("There was an error allocating memory for the main table, aborting");
 				return MEMORY_ALLOCATED_ERROR;
 			}else{
-				build_tree(&((*tree)->left), id-id/2);
+				build_tree(&((*tree)->left), id-(1<<(4-depth)), depth);
 			}
 			if( ((*tree)->rigth=(struct binary_tree *)malloc( sizeof(struct binary_tree) ) ) == NULL ){
 				printf("There was an error allocating memory for the main table, aborting");
 				return MEMORY_ALLOCATED_ERROR;
 			}else{
-				build_tree(&((*tree)->rigth), id+id/2);
+					build_tree(&((*tree)->rigth), id+(1<<(4-depth)),depth);
 			}
 			// End superior nodes
 		}else{
@@ -225,13 +235,13 @@ int build_tree(struct binary_tree **tree, int id){
 				printf("There was an error allocating memory for the main table, aborting");
 				return MEMORY_ALLOCATED_ERROR;
 			}else{
-				build_tree(&((*tree)->left), id-1);
+				build_tree(&((*tree)->left), id-1,0);
 			}
 			if( ((*tree)->rigth=(struct binary_tree *)malloc( sizeof(struct binary_tree) ) ) == NULL ){
 				printf("There was an error allocating memory for the main table, aborting");
 				return MEMORY_ALLOCATED_ERROR;
 			}else{
-				build_tree(&((*tree)->rigth), id+1);
+				build_tree(&((*tree)->rigth), id+1,0);
 			}
 			// End middle nodes
 		}
@@ -241,15 +251,15 @@ int build_tree(struct binary_tree **tree, int id){
 
 int put_in_tree( int iface, uint32_t prefix, int length, struct binary_tree *tree ){
 	int size;
-	if(prefix > HALF_IP){
+	if(length > HALF_IP){
 		size = 1 << HALF_IP;
 	}else{
 		size = 1 << tree->prefix;
 	}
-	if(prefix == tree->prefix){
+	if(length == tree->prefix){
 		return put_redirect(iface, prefix, length, size, &(tree->table));
 	}
-	if( prefix > tree->prefix ){
+	if( length > tree->prefix ){
 		if(put_redirect(iface, prefix, length, size, &(tree->table)) == OK)
 			return put_in_tree(iface, prefix, length, tree->rigth);
 		else

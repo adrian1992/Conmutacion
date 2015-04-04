@@ -21,11 +21,19 @@
 #include "aux.h"
 #include <time.h>
 
+
+void print_tree(struct binary_tree * tree){
+	if(tree->rigth!=NULL)
+		print_tree(tree->rigth);
+	printf("tree prefix %d\n", tree->prefix);
+	if(tree->left!=NULL)
+		print_tree(tree->left);
+}
+
 int initialize(struct binary_tree ** tree){
 	int error = MEMORY_ALLOCATED_ERROR;	
 // Started building file system
 	if( ( error = create_tree(tree) ) == OK ){
-
 		while( ( error = put( tree ) ) == OK);
 		if(error == REACHED_EOF)
 			return OK;
@@ -46,8 +54,10 @@ int main(int n_args, char *args[]){
 	if(n_args<4){
 		if( ( error = initializeIO(args[1], args[2]) ) == OK ){
 			// Initialize
+			printf("inicializado");
 			struct binary_tree * tree = NULL;
 			if((error = initialize( &tree )) == OK ){
+				print_tree(tree);
 				// Search and route
 				while(readInputPacketFileLine(&ipAddress)!=REACHED_EOF){
 					gettimeofday (&tic, NULL);
@@ -59,12 +69,12 @@ int main(int n_args, char *args[]){
 					}
 				}
 				// End search and route
-				freeIO();
-				free_tree( tree);
+				/*freeIO();
+				free_tree( tree);*/
 			}else{
-				freeIO();
+				/*freeIO();
 				printErrorExplanation(error);
-				return error;
+				return error;*/
 			}
 			// End initialize
 		}else{
